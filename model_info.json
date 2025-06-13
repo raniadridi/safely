@@ -1,0 +1,20 @@
+{
+  "best_model": "RandomForest",
+  "test_accuracy": 0.9952823010196317,
+  "uses_scaling": false,
+  "best_parameters": {
+    "class_weight": null,
+    "max_depth": 15,
+    "min_samples_leaf": 2,
+    "min_samples_split": 10,
+    "n_estimators": 200
+  },
+  "feature_names": [
+    "type",
+    "amount",
+    "oldbalanceOrg",
+    "newbalanceOrig"
+  ],
+  "training_samples": 26281,
+  "test_samples": 6571
+}

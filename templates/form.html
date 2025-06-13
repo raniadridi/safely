@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Favicons -->
+    <link href="static/img/favicon.png" rel="icon">
+    <link href="static/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="static/vendor/aos/aos.css" rel="stylesheet">
+    <link href="static/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="static/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Main CSS File -->
+    <link href="static/css/main.css" rel="stylesheet">
+    
+    <title>Transaction Fraud Prediction</title>
+</head>
+
+<body>
+    <header id="header" class="header d-flex align-items-center">
+        <div class="container-fluid container-xl position-relative d-flex align-items-center">
+            <a href="/" class="logo d-flex align-items-center me-auto">
+                <h1 class="sitename">Safely</h1>
+            </a>
+
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="/" class="">Home</a></li>
+                    <li><a href="/form">Make Prediction</a></li>
+                    <li><a href="/visualizations">Statistics</a></li>
+                </ul>
+                <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+            </nav>
+
+            <a class="btn-getstarted" href="/form">Predict</a>
+        </div>
+    </header>
+
+    <div class="fraud-form-container">
+        <h1>🔍 Transaction Fraud Detection</h1>
+        
+        <div class="fraud-info-box">
+            <strong>📝 Instructions:</strong> Fill in the transaction details below. The system will automatically calculate the new balance based on your old balance and transaction amount.
+        </div>
+
+        <form action="/predict" method="post" id="fraudForm" class="fraud-form">
+            <div class="fraud-form-group">
+                <label for="type">💳 Transaction Type:</label>
+                <select name="type" id="type" class="fraud-select" required>
+                    <option value="">Select Transaction Type</option>
+                    <option value="1">CASH_OUT - Withdraw cash from account</option>
+                    <option value="2">PAYMENT - Pay for goods/services</option>
+                    <option value="3">CASH_IN - Deposit cash to account</option>
+                    <option value="4">TRANSFER - Transfer money to another account</option>
+                    <option value="5">DEBIT - Direct debit payment</option>
+                </select>
+                <div class="fraud-description">Choose the type of transaction you want to analyze</div>
+            </div>
+
+            <div class="fraud-form-group">
+                <label for="oldbalanceOrg">💰 Current Account Balance ($):</label>
+                <input type="number" name="oldbalanceOrg" id="oldbalanceOrg" class="fraud-input" step="0.01" min="0" required>
+                <div class="fraud-description">Enter your current account balance before the transaction</div>
+            </div>
+
+            <div class="fraud-form-group">
+                <label for="amount">💸 Transaction Amount ($):</label>
+                <input type="number" name="amount" id="amount" class="fraud-input" step="0.01" min="0.01" required>
+                <div class="fraud-description">Enter the amount of money for this transaction</div>
+            </div>
+
+            <div class="fraud-form-group">
+                <label for="newbalanceOrig">📊 New Account Balance ($):</label>
+                <input type="number" name="newbalanceOrig" id="newbalanceOrig" class="fraud-input fraud-readonly" step="0.01" readonly>
+            </div>
+
+            <input type="submit" value="🔍 Analyze Transaction" class="fraud-submit-btn">
+        </form>
+    </div>
+
+    <script>
+        // Auto-calculate new balance based on transaction type and amount
+        function calculateNewBalance() {
+            const type = document.getElementById('type').value;
+            const oldBalance = parseFloat(document.getElementById('oldbalanceOrg').value) || 0;
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const newBalanceField = document.getElementById('newbalanceOrig');
+            const infoDiv = document.getElementById('calculationInfo');
+            
+            if (!type || !oldBalance || !amount) {
+                newBalanceField.value = '';
+                infoDiv.textContent = 'The new balance will be calculated automatically based on transaction type and amount';
+                return;
+            }
+
+            let newBalance;
+            let operation;
+            
+            switch(type) {
+                case '1': // CASH_OUT
+                    newBalance = oldBalance - amount;
+                    operation = 'Cash withdrawal: Old Balance - Amount';
+                    break;
+                case '2': // PAYMENT
+                    newBalance = oldBalance - amount;
+                    operation = 'Payment: Old Balance - Amount';
+                    break;
+                case '3': // CASH_IN
+                    newBalance = oldBalance + amount;
+                    operation = 'Cash deposit: Old Balance + Amount';
+                    break;
+                case '4': // TRANSFER
+                    newBalance = oldBalance - amount;
+                    operation = 'Transfer out: Old Balance - Amount';
+                    break;
+                case '5': // DEBIT
+                    newBalance = oldBalance - amount;
+                    operation = 'Debit payment: Old Balance - Amount';
+                    break;
+                default:
+                    newBalance = oldBalance;
+                    operation = 'Select transaction type';
+            }
+            
+            // Ensure no negative balance
+            if (newBalance < 0) {
+                newBalance = 0;
+                operation += ' (⚠️ Insufficient funds - balance set to 0)';
+            }
+            
+            newBalanceField.value = newBalance.toFixed(2);
+            infoDiv.innerHTML = `<strong>Calculation:</strong> ${operation}<br><strong>Result:</strong> $${oldBalance.toFixed(2)} → $${newBalance.toFixed(2)}`;
+        }
+
+        // Add event listeners
+        document.getElementById('type').addEventListener('change', calculateNewBalance);
+        document.getElementById('oldbalanceOrg').addEventListener('input', calculateNewBalance);
+        document.getElementById('amount').addEventListener('input', calculateNewBalance);
+
+        // Form validation
+        document.getElementById('fraudForm').addEventListener('submit', function(e) {
+            const type = document.getElementById('type').value;
+            const oldBalance = parseFloat(document.getElementById('oldbalanceOrg').value);
+            const amount = parseFloat(document.getElementById('amount').value);
+            
+            if (!type) {
+                alert('Please select a transaction type');
+                e.preventDefault();
+                return;
+            }
+            
+            if (oldBalance < 0) {
+                alert('Account balance cannot be negative');
+                e.preventDefault();
+                return;
+            }
+            
+            if (amount <= 0) {
+                alert('Transaction amount must be greater than zero');
+                e.preventDefault();
+                return;
+            }
+            
+            // Warning for large transactions
+            if (amount > oldBalance && ['1', '2', '4', '5'].includes(type)) {
+                if (!confirm('This transaction exceeds your current balance. Continue anyway?')) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
